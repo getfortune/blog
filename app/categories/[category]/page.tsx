@@ -11,18 +11,17 @@ export async function generateStaticParams() {
 }
 
 interface PageProps {
-  params: Promise<{ category: string }> | { category: string }
+    params: { category: string }
 }
 
 export default async function CategoryPage({ params }: PageProps) {
   // 等待参数解析
-  const resolvedParams = await params
   const posts = getAllPosts()
-  const categoryPosts = posts.filter(post => post.category === resolvedParams.category)
+  const categoryPosts = posts.filter(post => post.category === params.category)
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">分类: {resolvedParams.category}</h1>
+      <h1 className="text-3xl font-bold mb-8">分类: {params.category}</h1>
       <div className="space-y-8">
         {categoryPosts.map((post: Post) => (
           <article key={post.id} className="border-b pb-8">
@@ -50,4 +49,4 @@ export default async function CategoryPage({ params }: PageProps) {
       </div>
     </div>
   )
-} 
+}
