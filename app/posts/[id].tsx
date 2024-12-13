@@ -1,5 +1,5 @@
 import { getPostData, getAllPosts } from '@/lib/posts'
-import Comments from '../../components/Comments'
+import Comments from '../components/Comments'
 
 export async function generateStaticParams() {
   const posts = getAllPosts()
