@@ -14,7 +14,7 @@ export default function Categories() {
           return (
             <div key={category} className="border rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">
-                <Link href={`/categories/${category}`}>
+                <Link href={`/categories/${encodeURIComponent(category)}`}>
                   {category}
                 </Link>
               </h2>

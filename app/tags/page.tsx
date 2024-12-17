@@ -14,7 +14,7 @@ export default function Tags() {
           return (
             <Link
               key={tag}
-              href={`/tags/${tag}`}
+              href={`/tags/${encodeURIComponent(tag)}`}
               className="bg-gray-100 px-4 py-2 rounded-full hover:bg-gray-200"
             >
               {tag} ({tagPosts.length})

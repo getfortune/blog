@@ -6,7 +6,7 @@ export async function generateStaticParams() {
   const posts = getAllPosts()
   const categories = Array.from(new Set(posts.map(post => post.category)))
   return categories.map((category) => ({
-    category: category,
+    category: encodeURIComponent(category),
   }))
 }
 
@@ -15,13 +15,13 @@ interface PageProps {
 }
 
 export default async function CategoryPage({ params }: PageProps) {
-  // 等待参数解析
   const posts = getAllPosts()
-  const categoryPosts = posts.filter(post => post.category === params.category)
+  const category = decodeURIComponent(params.category); // 解码分类名称
+  const categoryPosts = posts.filter(post => post.category === category)
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">分类: {params.category}</h1>
+      <h1 className="text-3xl font-bold mb-8">分类: {category}</h1>
       <div className="space-y-8">
         {categoryPosts.map((post: Post) => (
           <article key={post.id} className="border-b pb-8">

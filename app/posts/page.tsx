@@ -20,7 +20,7 @@ export default function Posts() {
         {posts.map(post => (
           <article key={post.id} className="border-b pb-8">
             <h2 className="text-2xl font-semibold mb-2">
-              <Link href={`/posts/${post.id}`}>
+              <Link href={`/posts/${encodeURIComponent(post.id)}`}>
                 {post.title}
               </Link>
             </h2>

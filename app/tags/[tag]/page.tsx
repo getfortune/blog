@@ -6,13 +6,13 @@ export async function generateStaticParams() {
     const posts = getAllPosts()
     const tags = Array.from(new Set(posts.flatMap(post => post.tags)))
     return tags.map((tag) => ({
-        tag: tag,
+        tag: encodeURIComponent(tag),
     }))
 }
 
 export default async function TagPage({params}: { params: { tag: string } }) {
     const posts = getAllPosts()
-    const {tag} = await params;
+    const tag = decodeURIComponent(params.tag);
     const tagPosts = posts.filter(post => post.tags.includes(tag))
 
     return (

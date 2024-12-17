@@ -4,7 +4,7 @@ import Comments from '@/app/components/Comments'
 export async function generateStaticParams() {
   const posts = getAllPosts()
   return posts.map((post) => ({
-    id: post.id,
+    id: encodeURIComponent(post.id),
   }))
 }
 
@@ -14,7 +14,7 @@ export default async function Post({
   params: Promise<{ id: string }> | { id: string }
 }) {
   const resolvedParams = await params
-  const post = await getPostData(resolvedParams.id)
+  const post = await getPostData(decodeURIComponent(resolvedParams.id))
   
   if (!post) {
     return <div>文章不存在</div>
