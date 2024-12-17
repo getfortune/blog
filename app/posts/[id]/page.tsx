@@ -2,13 +2,13 @@ import { getPostData, getAllPosts } from '@/lib/posts'
 import Comments from '@/app/components/Comments'
 
 export async function generateStaticParams() {
-  const posts = getAllPosts()
+  const posts = await getAllPosts()
   return posts.map((post) => ({
     id: encodeURIComponent(post.id),
   }))
 }
 
-interface PageProps {
+type PageProps = {
   params: Promise<{ id: string }>
 }
 

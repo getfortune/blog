@@ -3,14 +3,14 @@ import {getAllPosts} from '@/lib/posts'
 import type {Post} from '@/lib/posts'
 
 export async function generateStaticParams() {
-    const posts = getAllPosts()
+    const posts = await getAllPosts()
     const tags = Array.from(new Set(posts.flatMap(post => post.tags)))
     return tags.map((tag) => ({
         tag: encodeURIComponent(tag),
     }))
 }
 
-interface PageProps {
+type PageProps = {
     params: Promise<{ tag: string }>
 }
 
