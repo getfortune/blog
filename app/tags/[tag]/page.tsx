@@ -10,9 +10,14 @@ export async function generateStaticParams() {
     }))
 }
 
-export default async function TagPage({params}: { params: { tag: string } }) {
-    const posts = getAllPosts()
-    const tag = decodeURIComponent(params.tag);
+interface PageProps {
+    params: Promise<{ tag: string }>
+}
+
+export default async function TagPage({params}: PageProps) {
+    const posts = await getAllPosts()
+    const params1 = await params;
+    const tag = decodeURIComponent(params1.tag);
     const tagPosts = posts.filter(post => post.tags.includes(tag))
 
     return (

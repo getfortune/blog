@@ -3,20 +3,21 @@ import { getAllPosts } from '@/lib/posts'
 import type { Post } from '@/lib/posts'
 
 export async function generateStaticParams() {
-  const posts = getAllPosts()
+  const posts = await getAllPosts()
   const categories = Array.from(new Set(posts.map(post => post.category)))
   return categories.map((category) => ({
     category: encodeURIComponent(category),
   }))
 }
 
-interface PageProps {
-    params: { category: string }
+type PageProps = {
+  params: Promise<{ category: string }> // Updated to be a Promise
 }
 
 export default async function CategoryPage({ params }: PageProps) {
   const posts = getAllPosts()
-  const category = decodeURIComponent(params.category); // 解码分类名称
+  const params1 = await params;
+  const category = decodeURIComponent(params1.category); // 解码分类名称
   const categoryPosts = posts.filter(post => post.category === category)
 
   return (
