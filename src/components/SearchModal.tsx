@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Post } from '@/lib/types';
+import Link from 'next/link';
 
 interface SearchModalProps {
   posts: Post[];
@@ -68,13 +69,11 @@ export default function SearchModal({ posts, onClose }: SearchModalProps) {
               {searchResults.length > 0 ? (
                 <div className="space-y-4">
                   {searchResults.map((post) => (
-                    <div 
+                    <Link 
                       key={post.id} 
-                      className="border-b border-gray-200 pb-4 cursor-pointer hover:bg-gray-50 p-2 rounded"
-                      onClick={() => {
-                        onClose();
-                        window.location.href = `/posts/${post.id}`;
-                      }}
+                      href={`/posts/${post.id}`}
+                      onClick={onClose}
+                      className="border-b border-gray-200 pb-4 cursor-pointer hover:bg-gray-50 p-2 rounded block"
                     >
                       <h5 className="font-semibold mb-1">{post.title}</h5>
                       <div className="text-gray-600 text-sm mb-2">
@@ -92,7 +91,7 @@ export default function SearchModal({ posts, onClose }: SearchModalProps) {
                           </div>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (

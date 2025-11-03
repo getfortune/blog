@@ -14,6 +14,27 @@ export default function Post({ post, allPosts }: { post: Post; allPosts: Post[] 
     return <div>加载中...</div>;
   }
 
+  // 如果没有找到文章
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header posts={allPosts} />
+        <main className="container mx-auto px-4 py-8">
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <h1 className="text-2xl font-bold mb-4">文章未找到</h1>
+            <p className="text-gray-600 mb-6">抱歉，您要查找的文章不存在。</p>
+            <button 
+              onClick={() => router.push('/')}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              返回首页
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -57,9 +78,10 @@ export async function getStaticPaths() {
     params: { id: post.id },
   }));
 
+  // 在静态导出模式下，必须使用 fallback: false
   return {
     paths,
-    fallback: true,
+    fallback: false,
   };
 }
 

@@ -4,8 +4,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: '/blog',
-  assetPrefix: '/blog/',
+  // 仅在生产环境中使用 basePath
+  ...(process.env.NODE_ENV === 'production' && {
+    basePath: '/blog',
+    assetPrefix: '/blog/',
+  }),
 }
 
 module.exports = nextConfig

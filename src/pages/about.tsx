@@ -13,8 +13,8 @@ export default function About() {
           <div className="bg-white rounded-lg shadow p-6">
             <h1 className="text-3xl font-bold mb-6">关于我</h1>
             <div className="prose max-w-none">
-              <p>这是一个关于我的页面。</p>
-              <p>在这里你可以写一些关于你自己的信息。</p>
+              <p>一个普普通通的小码农</p>
+              <p>github：<a href="https://github.com/getfortune">https://github.com/getfortune</a> </p>
             </div>
             <div className="mt-6">
               <Link href="/" className="text-blue-500 hover:text-blue-700">
