@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Production builds
+.out
+.next/
+build/
+dist/
+
+# Environment variables
+.env*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Ignore next.js build output
+out/
+
+# Ignore trace files
+*.trace
+
+# Windows files
+desktop.ini
