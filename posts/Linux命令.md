@@ -1,5 +1,5 @@
 ---
-id: "4"
+id: "5"
 title: 'linux 命令'
 date: '2025-11-07'
 excerpt: 'linux 命令'
