@@ -21,14 +21,19 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
+	"net/http"
+	"net/url"
 	"time"
 
 	pb "gRpc/helloworld/helloworld" // 这里需要指向我们自己的 proto 包
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -40,8 +45,39 @@ var (
 	name = flag.String("name", defaultName, "Name to greet")
 )
 
+func getAccessToken(clientID, clientSecret, tokenURL string) (string, error) {
+	// 获取访问令牌的 HTTP 请求
+	resp, err := http.PostForm(tokenURL, url.Values{
+		"grant_type":    {"client_credentials"},
+		"client_id":     {clientID},
+		"client_secret": {clientSecret},
+	})
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get access token: %s", resp.Status)
+	}
+
+	var result map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&result)
+	return result["access_token"].(string), nil
+}
+
 func main() {
 	flag.Parse()
+	// 获取访问令牌
+	clientID := "your-client-id"
+	clientSecret := "your-client-secret"
+	tokenURL := "https://your-oauth-server/token"
+	accessToken, err := getAccessToken(clientID, clientSecret, tokenURL)
+	if err != nil {
+		panic(err)
+	}
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.Pairs("authorization", "Bearer "+accessToken))
+
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -51,7 +87,7 @@ func main() {
 	c := pb.NewGreeterClient(conn)
 
 	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
 	if err != nil {

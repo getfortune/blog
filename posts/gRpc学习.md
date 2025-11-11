@@ -348,3 +348,165 @@ Application Layer Transport Security (应用层传输安全) 是由谷歌开发�
 - 支持客户端授权和服务器授权。
 - 只需对代码进行少量更改即可启用 ALTS。
 
+
+在初始化的时候通过配置option 来实现
+
+1. 认证器
+   Credentials 通常指的是与传输层的安全性相关的配置，比如 SSL/TLS 证书，或者是应用层的身份验证信息。
+2. 拦截器 
+   Interceptor 拦截器是一种在 RPC 调用前后执行逻辑的机制，通常用于进行日志记录、监控、错误处理和身份验证等。 
+3. TLS（Transport Layer Security）
+   gRPC 支持使用 TLS 来加密传输数据。这是实现安全通信的基础，可以保护数据在网络传输过程中的安全。您可以通过提供证书和密钥来配置 TLS：
+
+```go
+import (
+"google.golang.org/grpc"
+"google.golang.org/grpc/credentials"
+)
+
+creds, err := credentials.NewServerTLSFromFile("server.crt", "server.key")
+if err != nil {
+    panic(err)
+}
+s := grpc.NewServer(grpc.Creds(creds))
+```
+
+4. Message-Based Authentication
+   除了使用 PerRPCCredentials，您还可以在消息中传递认证信息。比如，您可以在请求的消息体中添加用户身份信息，然后在服务器端进行验证。
+
+5. Streaming Interceptors
+   除了单向 RPC（Unary RPC），gRPC 还支持流式 RPC。您可以为流式 RPC 创建相应的拦截器，使用 grpc.StreamServerInterceptor 和 grpc.StreamClientInterceptor。它们的工作原理与 Unary 拦截器类似，但支持处理数据流。
+```go
+func streamAuthInterceptor(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+// 验证逻辑
+    return handler(srv, stream)
+}
+```
+
+6. Load Balancing
+   gRPC 还支持负载均衡，可以将请求分发到多个后端服务。你可以使用 gRPC 的负载均衡策略，或者使用外部负载均衡器。
+
+7. Rate Limiting
+   可以通过拦截器或中间件实现速率限制，以防止服务过载。这通常涉及到在拦截器中跟踪请求频率，并根据策略拒绝过多的请求。
+
+8. Circuit Breaker Pattern
+   实现断路器模式，以防止系统在遇到故障时完全崩溃。可以使用流行的库，如 Hystrix、go-resiliency 等，配合拦截器使用。
+
+9. Middleware
+   虽然 gRPC 的拦截器是中间件的形式，但可以结合使用其他中间件（如日志记录、中间件框架等）来增强应用程序的功能。
+
+10. Metadata
+   gRPC 支持在请求中附加元数据（metadata），可以用于传递额外的信息，例如用户 ID、请求标识符等。元数据可以在拦截器中访问并用于认证或审计。
+
+```go
+md := metadata.Pairs("key", "value")
+grpc.SendHeader(ctx, md)
+```
+11. Health Checking
+   gRPC 提供内置的健康检查服务（Health Checking），允许客户端查询服务的可用性。这对于微服务架构中的服务发现和故障转移非常有用。
+
+12. Tracing and Monitoring
+    可以集成分布式追踪系统（如 OpenTracing、Jaeger、Zipkin）来监控 gRPC 调用的性能，并进行故障排查。
+
+
+
+###  Credentials 和 Interceptor 联合使用  示例
+
+> 服务端代码
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"strings"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+)
+
+func validateToken(token string) error {
+	// 验证 token 的逻辑
+	if token == "valid_token" {
+		return nil
+	}
+	return fmt.Errorf("invalid token")
+}
+
+func authInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "missing metadata")
+	}
+
+	token := md["authorization"]
+	if len(token) == 0 {
+		return nil, status.Error(codes.Unauthenticated, "missing authorization token")
+	}
+
+	if err := validateToken(strings.TrimPrefix(token[0], "Bearer ")); err != nil {
+		return nil, status.Error(codes.Unauthenticated, fmt.Sprintf("invalid token: %v", err))
+	}
+
+	return handler(ctx, req)
+}
+
+func main() {
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		panic(err)
+	}
+
+	s := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor))
+	// 注册你的服务
+
+	if err := s.Serve(lis); err != nil {
+		panic(err)
+	}
+}
+
+```
+
+
+> 客户端代码
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+)
+
+type tokenCredentials struct {
+	token string
+}
+
+func (c *tokenCredentials) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
+	return map[string]string{"authorization": "Bearer " + c.token}, nil
+}
+
+func (c *tokenCredentials) RequireTransportSecurity() bool {
+	return true // 如果使用 TLS，则返回 true
+}
+
+func main() {
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure(), grpc.WithPerRPCCredentials(&tokenCredentials{token: "your_access_token"}))
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	// 创建你的 gRPC 客户端并调用方法
+}
+
+```
